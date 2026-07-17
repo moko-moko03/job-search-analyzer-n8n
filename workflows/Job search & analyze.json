@@ -1,0 +1,1967 @@
+{
+  "name": "Job search & analyze",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        400
+      ],
+      "id": "3c6555b9-f905-4396-a03c-2400007b1e46",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://himalayas.app/jobs/api/search",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={{ JSON.stringify($json) }}\n",
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "page",
+                    "value": "={{ $pageCount + 1 }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ Math.ceil($response.body.totalCount / 20) <= $pageCount }}",
+              "limitPagesFetched": true,
+              "maxRequests": 8,
+              "requestInterval": 2
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2192,
+        272
+      ],
+      "id": "ec9a6dd9-b0cf-4d3d-8335-67b7a5f127db",
+      "name": "HTTP Request",
+      "executeOnce": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=You are a job fit analyzer. Analyze the job posting data and the user's profile, then respond ONLY with a valid JSON object. Do not include any explanation, markdown, or code blocks.\n\nUser profile:\n- Skills: {{ $('Edit Fields2').item.json.userSkills }}\n- Experience: {{ $('Edit Fields2').item.json.userExperience }}\n- Work Preference: {{ $('Edit Fields2').item.json.workPreference }}\n- Location: {{ $('Edit Fields2').item.json.location }}\n- Target Position: {{ $('Edit Fields2').item.json.targetPosition }}\n- Salary Expectation: {{ $('Edit Fields2').item.json.salaryExpectation }}\n- Preferred Industry: {{ $('Edit Fields2').item.json.preferredIndustry }}\n- Preferred Role: {{ $('Edit Fields2').item.json.preferredRole }}"
+            },
+            {
+              "content": "=Analyze the following {{ $input.all().length }} job postings and return a JSON array.\n\nJobs:\n{{ JSON.stringify($input.all(), null, 2) }}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "verbosity": "low",
+              "name": "job_schema",
+              "schema": "{\n  \"type\": \"object\",\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"results\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"id\": { \"type\": \"string\", \"description\": \"The ID of each input job.\" },\n          \"skills\": { \"type\": \"array\", \"items\": { \"type\": \"string\" }, \"description\": \"1 to 10 important skills or keywords extracted from the job description.\" },\n          \"jobFit\": { \"type\": \"integer\", \"minimum\": 1, \"maximum\": 5, \"description\": \"The degree to which the job description matches the user's profile. 1 = the job description does not match the user's profile at all ~ 5 = matches very well.\" },\n          \"jobFitReason\": { \"type\": \"string\", \"description\": \"The reason for the jobFit score.\" },\n          \"preferencesMatch\": { \"type\": \"integer\", \"minimum\": 1, \"maximum\": 5, \"description\": \"The degree to which the job description matches the user's preferences.\" },\n          \"preferencesMatchReason\": { \"type\": \"string\", \"description\": \"The reason for the preferencesMatch score.\" }\n        },\n        \"required\": [\"id\", \"skills\", \"jobFit\", \"jobFitReason\", \"preferencesMatch\", \"preferencesMatchReason\"]\n      }\n    }\n  },\n  \"required\": [\"results\"]\n}",
+              "strict": true
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        3536,
+        272
+      ],
+      "id": "2392629e-0003-49ad-a98e-5b207b06a690",
+      "name": "Message a model",
+      "executeOnce": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "21WhaehCbawZ1lxI",
+          "name": "OpenAI account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "jobs",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2416,
+        176
+      ],
+      "id": "41231de3-aa23-47b3-86d5-8bd40b40bbae",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b51fced7-fe65-4728-bb4f-d5b24d230906",
+              "name": "id",
+              "value": "={{ $now.toFormat(\"yyyyMMddHHmmss\") + \"_\" + Math.random().toString(36).slice(-6) }}",
+              "type": "string"
+            },
+            {
+              "id": "9d710f2d-bc8c-422a-a0a5-3e50cb10621b",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "9a154c93-ad9c-4466-83f5-0f333143aa83",
+              "name": "companyName",
+              "value": "={{ $json.companyName }}",
+              "type": "string"
+            },
+            {
+              "id": "ae558d24-209a-4fe2-a4ac-1a26f890008e",
+              "name": "employmentType",
+              "value": "={{ $json.employmentType }}",
+              "type": "string"
+            },
+            {
+              "id": "d13ddd5d-b4b3-46f1-b4f7-90f690a83a4f",
+              "name": "currency",
+              "value": "={{ $json.currency }}",
+              "type": "string"
+            },
+            {
+              "id": "6298b94c-8995-48fc-8962-3484359e1e64",
+              "name": "minSalary",
+              "value": "={{ $json.minSalary }}",
+              "type": "string"
+            },
+            {
+              "id": "40d43302-5267-4f40-9fe0-c0a598b23b6c",
+              "name": "maxSalary",
+              "value": "={{ $json.maxSalary }}",
+              "type": "number"
+            },
+            {
+              "id": "1cfb36bf-1700-4269-864d-4b7c5e7fe275",
+              "name": "salaryPeriod",
+              "value": "={{ $json.salaryPeriod }}",
+              "type": "string"
+            },
+            {
+              "id": "081ac170-2849-4d16-845e-1d1941027d8f",
+              "name": "seniority",
+              "value": "={{ $json.seniority }}",
+              "type": "array"
+            },
+            {
+              "id": "57dbb81c-11bc-43d9-8d05-28bc7caa9daf",
+              "name": "locationRestrictions",
+              "value": "={{ $json.locationRestrictions }}",
+              "type": "array"
+            },
+            {
+              "id": "7ae32e36-05c3-45d6-bf66-67ef470bd1d6",
+              "name": "categories",
+              "value": "={{ $json.categories }}",
+              "type": "array"
+            },
+            {
+              "id": "21653272-d6b5-4c75-8a34-c6f71deceef6",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "8b7b64e8-9843-42e6-990f-a19cde125fce",
+              "name": "pubDate",
+              "value": "={{ DateTime.fromSeconds($json.pubDate).setZone('America/Toronto').toFormat('yyyy-MM-dd HH:mm') }}",
+              "type": "string"
+            },
+            {
+              "id": "bf3d7ee5-f535-45a3-9176-16200a69c8c9",
+              "name": "expiryDate",
+              "value": "={{ DateTime.fromSeconds($json.expiryDate).setZone('America/Toronto').toFormat('yyyy-MM-dd HH:mm') }}",
+              "type": "string"
+            },
+            {
+              "id": "64ea4d29-3b5d-495e-8c27-d5b8c1925856",
+              "name": "applicationLink",
+              "value": "={{ $json.applicationLink }}",
+              "type": "string"
+            },
+            {
+              "id": "95c44f32-eaaf-4e6e-84cf-89ae8ce725a2",
+              "name": "source",
+              "value": "={{ $json.guid }}",
+              "type": "string"
+            },
+            {
+              "id": "0d913f74-ab9d-4d79-94ad-cfae90a27398",
+              "name": "addDate",
+              "value": "={{ $now.setZone('America/Toronto').toFormat('yyyy-MM-dd HH:mm') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3088,
+        176
+      ],
+      "id": "19273e90-8ff1-4889-9877-ed5a3d9a9800",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  const html = item.json.description;\n  const result = html\n    // Convert <br> to a newline\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    // Remove all tags except <a>\n    .replace(/<(?!\\/?a\\b)[^>]+>/gi, '');\n  item.json.description = result;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2864,
+        176
+      ],
+      "id": "48e89e2f-49e6-46c5-b2f6-3e7c025a0c07",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields4').item.json.sheetJob }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "YOUR_SPREADSHEET_URI"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyName",
+              "displayName": "companyName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employmentType",
+              "displayName": "employmentType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "minSalary",
+              "displayName": "minSalary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "maxSalary",
+              "displayName": "maxSalary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salaryPeriod",
+              "displayName": "salaryPeriod",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "seniority",
+              "displayName": "seniority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "locationRestrictions",
+              "displayName": "locationRestrictions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "categories",
+              "displayName": "categories",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "skills",
+              "displayName": "skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "jobFit",
+              "displayName": "jobFit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "jobFitReason",
+              "displayName": "jobFitReason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "preferencesMatch",
+              "displayName": "preferencesMatch",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "preferencesMatchReason",
+              "displayName": "preferencesMatchReason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "pubDate",
+              "displayName": "pubDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "expiryDate",
+              "displayName": "expiryDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "applicationLink",
+              "displayName": "applicationLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "addDate",
+              "displayName": "addDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3312,
+        -64
+      ],
+      "id": "3f0f2091-a16d-470b-b6e8-91b9e813af8e",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YmtwqdRi7R5Nf4U3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields4').item.json.sheetJob }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "YOUR_SPREADSHEET_URI"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "skills": "={{ $json.skills }}",
+            "jobFit": "={{ $json.jobFit }}",
+            "jobFitReason": "={{ $json.jobFitReason }}",
+            "preferencesMatch": "={{ $json.preferencesMatch }}",
+            "preferencesMatchReason": "={{ $json.preferencesMatchReason }}",
+            "id": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "companyName",
+              "displayName": "companyName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "employmentType",
+              "displayName": "employmentType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "minSalary",
+              "displayName": "minSalary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "maxSalary",
+              "displayName": "maxSalary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "salaryPeriod",
+              "displayName": "salaryPeriod",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "seniority",
+              "displayName": "seniority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "locationRestrictions",
+              "displayName": "locationRestrictions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "categories",
+              "displayName": "categories",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "skills",
+              "displayName": "skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "jobFit",
+              "displayName": "jobFit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "jobFitReason",
+              "displayName": "jobFitReason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "preferencesMatch",
+              "displayName": "preferencesMatch",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "preferencesMatchReason",
+              "displayName": "preferencesMatchReason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "pubDate",
+              "displayName": "pubDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "expiryDate",
+              "displayName": "expiryDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "applicationLink",
+              "displayName": "applicationLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "addDate",
+              "displayName": "addDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4112,
+        352
+      ],
+      "id": "f641e8fb-9052-4b95-8e15-feb4e35ff293",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YmtwqdRi7R5Nf4U3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a307c385-723b-4a3c-97da-cf9737d9055e",
+              "name": "userSkills",
+              "value": "={{ $json.userSkills }}",
+              "type": "string"
+            },
+            {
+              "id": "7c6b3e90-0504-4a9d-aa45-e9cfcedc1a69",
+              "name": "userExperience",
+              "value": "={{ $json.userExperience }}",
+              "type": "string"
+            },
+            {
+              "id": "84ef9c7e-878a-47b9-86db-d69037b0aa70",
+              "name": "workPreference",
+              "value": "={{ $json.workPreference }}",
+              "type": "string"
+            },
+            {
+              "id": "ab826b41-343d-4c06-b75a-b80249930830",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "9c5516b8-3525-4f44-b93a-d9ec57d093f8",
+              "name": "targetPosition",
+              "value": "={{ $json.targetPosition }}",
+              "type": "string"
+            },
+            {
+              "id": "2b1f3185-85c0-440e-8742-cca72791e631",
+              "name": "salaryExpectation",
+              "value": "={{ $json.salaryExpectation }}",
+              "type": "string"
+            },
+            {
+              "id": "78033728-291b-4f5f-8a67-a9d9b7c6aece",
+              "name": "preferredIndustry",
+              "value": "={{ $json.preferredIndustry }}",
+              "type": "string"
+            },
+            {
+              "id": "2733a838-6972-4b7f-b089-ac98a852c60b",
+              "name": "preferredRole",
+              "value": "={{ $json.preferredRole }}",
+              "type": "string"
+            },
+            {
+              "id": "10e76299-b341-46ea-a97b-3f4852967abe",
+              "name": "=retryCount",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "1265de40-0315-49d4-9e30-635636ad33d8",
+              "name": "runId",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "ad005032-eba7-4e71-bc02-234a58b3d996",
+              "name": "status",
+              "value": "Running",
+              "type": "string"
+            },
+            {
+              "id": "c640ca01-49bf-4f41-adff-445d6898bac0",
+              "name": "workflowName",
+              "value": "={{ $workflow.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        304
+      ],
+      "id": "7bd0698a-79bd-4dbb-a547-6c07da4103fe",
+      "name": "Edit Fields2",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output[0].content[0].text.results",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3888,
+        176
+      ],
+      "id": "0e677e3b-c728-41cc-8620-d6f6df8ee209",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=## User profile:\n- Skills: {{ $('Edit Fields2').item.json.userSkills }}\n- Experience: {{ $('Edit Fields2').item.json.userExperience }}\n- Work Preference: {{ $('Edit Fields2').item.json.workPreference }}\n- Location: {{ $('Edit Fields2').item.json.location }}\n- Target Position: {{ $('Edit Fields2').item.json.targetPosition }}\n- Salary Expectation: {{ $('Edit Fields2').item.json.salaryExpectation }}\n- Preferred Industry: {{ $('Edit Fields2').item.json.preferredIndustry }}\n- Preferred Role: {{ $('Edit Fields2').item.json.preferredRole }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "instructions": "Read the user profile carefully and determine the appropriate filters for the user to search for jobs using the Himalayas Remote Jobs API. Make sure to check the tips and examples below and set valid query parameters.\nOnly set values for parameters matching the user profile. If a parameter cannot be inferred from the profile, set it to \"null\" or \"false\".\nThen respond ONLY with a valid JSON object. Do not include any explanation, markdown, or code blocks.\n\n## Tips:\nEndpoint: https://himalayas.app/jobs/api/search\n\nThe search endpoint accepts these query parameters:\n- q\n- country\n- worldwide\n- exclude_worldwide\n- seniority\n- employment_type\n- company\n- timezone\n- sort\n\n## Search API examples:\nhttps://himalayas.app/jobs/api/search?q=react%20engineer\nhttps://himalayas.app/jobs/api/search?country=US&seniority=Senior&sort=recent\nhttps://himalayas.app/jobs/api/search?company=linear&employment_type=Full%20Time\nhttps://himalayas.app/jobs/api/search?q=python&sort=salaryDesc",
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "verbosity": "low",
+              "name": "filter_schema",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"q\": {\n      \"type\": [\"string\", \"null\"],\n      \"description\": \"free-text query, e.g. 'react engineer'\"\n    },\n    \"country\": {\n      \"type\": [\"string\", \"null\"],\n      \"description\": \"Country filter using ISO alpha-2, common country name (e.g., \\\"United States\\\", \\\"Germany\\\")\"\n    },\n    \"worldwide\": {\n      \"type\": \"boolean\",\n      \"description\": \"Show only jobs with no location restrictions\"\n    },\n    \"exclude_worldwide\": {\n      \"type\": \"boolean\",\n      \"description\": \"Exclude worldwide matches when using a country filter\"\n    },\n    \"seniority\": {\n      \"type\": [\"string\", \"null\"],\n      \"description\": \"one or more of Entry-level, Mid-level, Senior, Manager, Director, Executive\"\n    },\n    \"employment_type\": {\n      \"type\": [\"string\", \"null\"],\n      \"description\": \"one or more of Full Time, Part Time, Contractor, Temporary, Intern, Volunteer, Other\"\n    },\n    \"company\": {\n      \"type\": [\"string\", \"null\"],\n      \"description\": \"one or more canonical company slugs, e.g. 'linear' or 'linear,vercel'\"\n    },\n    \"timezone\": {\n      \"type\": [\"string\", \"null\"],\n      \"description\": \"timezone filter such as '-5', 'UTC-5', or 'UTC+05:30'\"\n    },\n    \"sort\": {\n      \"type\": [\"string\", \"null\"],\n      \"description\": \"one of 'relevant', 'recent', 'salaryAsc', 'salaryDesc', 'nameAToZ', 'nameZToA', or 'jobs'\"\n    }\n  },\n  \"additionalProperties\": false,\n  \"required\": [\"q\", \"country\", \"worldwide\", \"exclude_worldwide\", \"seniority\", \"employment_type\", \"company\", \"timezone\", \"sort\"]\n}",
+              "strict": true
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1168,
+        400
+      ],
+      "id": "6e3cbd91-7f2c-42d2-9138-199fb424e031",
+      "name": "Message a model1",
+      "executeOnce": true,
+      "retryOnFail": false,
+      "waitBetweenTries": 2000,
+      "notesInFlow": false,
+      "maxTries": 2,
+      "credentials": {
+        "openAiApi": {
+          "id": "21WhaehCbawZ1lxI",
+          "name": "OpenAI account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.output[0].content[0].text;\nconst result = {};\n\nfor (const key in text) {\n  const value = text[key];\n  // ignore parameter whose value is null or false\n  if (value === null || value === false) {\n    continue;\n  }\n  result[key] = value;\n}\n\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1968,
+        272
+      ],
+      "id": "39cabef9-b57c-43d6-91af-ce778ac6db94",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields4').item.json.sheetJob }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRangeA1",
+              "range": "T:T"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        272,
+        304
+      ],
+      "id": "1d9e6826-ecb0-4510-9c73-649cce9d19d3",
+      "name": "Get row(s) in sheet",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YmtwqdRi7R5Nf4U3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compare links between the API results and the spreadsheet to remove duplicate jobs\nconst existingLinks = new Set(\n  $('Get row(s) in sheet').all().map(item => item.json.applicationLink)\n);\nreturn $input.all().filter(item => !existingLinks.has(item.json.applicationLink));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        176
+      ],
+      "id": "73dc5fd5-b2ea-4f9f-9065-2054fa87c6ea",
+      "name": "Code in JavaScript2",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ad801f89-e5d2-4bb8-be65-86490c72e22e",
+              "leftValue": "={{ $json.output[0].status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1520,
+        320
+      ],
+      "id": "e0ec64f6-b0fb-49e1-8ecd-a3652abc6836",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4nrgs6cWTYWMKhTx",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4nrgs6cWTYWMKhTx",
+          "cachedResultName": "Sub-workflow-OpenAI-Error"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1744,
+        496
+      ],
+      "name": "Call Sub-workflow-OpenAI-Error",
+      "id": "b3ae27fb-2721-4651-bc56-efef8024f23e"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bf746fb0-8405-49a1-a8cd-40ac9cfc6be1",
+              "name": "retryCount",
+              "value": 0,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1744,
+        272
+      ],
+      "id": "8c74fbcb-3072-40f8-9c0b-ac09b9c04380",
+      "name": "Edit Fields",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields4').item.json.sheetProfile }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "YOUR_SPREADSHEET_URI"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        496,
+        304
+      ],
+      "id": "6f746d35-39b5-4cbe-9325-a3c7426e2978",
+      "name": "Get row(s) in sheet1",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YmtwqdRi7R5Nf4U3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "id",
+        "joinMode": "enrichInput1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3600,
+        -16
+      ],
+      "id": "e42baa69-7fd2-42d9-9660-50629ef67811",
+      "name": "Merge",
+      "executeOnce": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "CQxLDQzre1FPmwo1",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/CQxLDQzre1FPmwo1",
+          "cachedResultName": "Sub-Workflow-Logging"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "jobsAdded": 0,
+            "runId": "={{ $execution.id }}",
+            "status": "Running",
+            "workflowName": "={{ $workflow.name }}",
+            "errorMessage": "={{ $json.error ? $json.error : '' }}",
+            "nodeName": "={{ $prevNode.name ? $prevNode.name : '' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "runId",
+              "displayName": "runId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "jobsAdded",
+              "displayName": "jobsAdded",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "workflowName",
+              "displayName": "workflowName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "nodeName",
+              "displayName": "nodeName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "errorMessage",
+              "displayName": "errorMessage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        720,
+        496
+      ],
+      "id": "624deadb-94f9-4b8b-a826-19fb50d83297",
+      "name": "Call 'Sub-Workflow-Logging'",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "CQxLDQzre1FPmwo1",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/CQxLDQzre1FPmwo1",
+          "cachedResultName": "Sub-Workflow-Logging"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "jobsAdded": 0,
+            "runId": "={{ $execution.id }}",
+            "workflowName": "={{ $workflow.name }}",
+            "errorMessage": "={{ $json.errorMessage }}",
+            "nodeName": "={{ $prevNode.name ? $prevNode.name : '' }}",
+            "status": "Failed"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "runId",
+              "displayName": "runId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "jobsAdded",
+              "displayName": "jobsAdded",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "workflowName",
+              "displayName": "workflowName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "nodeName",
+              "displayName": "nodeName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "errorMessage",
+              "displayName": "errorMessage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2640,
+        368
+      ],
+      "id": "41473037-2c1e-453c-ae04-2a53899c3800",
+      "name": "Call 'Sub-Workflow-Logging'1",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "848f5665-cfd4-4842-ae32-d49a2cb9e319",
+              "name": "errorMessage",
+              "value": "={{ $json.error.statusCode }} {{ $json.error.response.statusText }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2416,
+        368
+      ],
+      "id": "2a5b4abe-4b30-4293-a1eb-e31deed39359",
+      "name": "Edit Fields3",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ $('Edit Fields3').item.json.errorMessage }}"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2864,
+        368
+      ],
+      "id": "cf9718c0-c9d2-4f06-bdd5-6abcb0badf02",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "CQxLDQzre1FPmwo1",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/CQxLDQzre1FPmwo1",
+          "cachedResultName": "Sub-Workflow-Logging"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "runId": "={{ $execution.id }}",
+            "workflowName": "={{ $workflow.name }}",
+            "errorMessage": "={{ $json.error ? $json.error : '' }}",
+            "nodeName": "={{ $prevNode.name ? $prevNode.name : '' }}",
+            "status": "Completed",
+            "jobsAdded": "={{ $input.all().length }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "runId",
+              "displayName": "runId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "jobsAdded",
+              "displayName": "jobsAdded",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "workflowName",
+              "displayName": "workflowName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "nodeName",
+              "displayName": "nodeName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "errorMessage",
+              "displayName": "errorMessage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3888,
+        -16
+      ],
+      "id": "e63cda31-c491-46a8-b8e7-43b2a540891e",
+      "name": "Call 'Sub-Workflow-Logging'2",
+      "executeOnce": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        944,
+        400
+      ],
+      "id": "e725629e-ed8c-487b-b9cc-3c95178873d3",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "batchSize": 50,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        3312,
+        272
+      ],
+      "id": "4c85fdde-62e4-4855-8a46-ed1a08b3032f",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "CQxLDQzre1FPmwo1",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/CQxLDQzre1FPmwo1",
+          "cachedResultName": "Sub-Workflow-Logging"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "runId": "={{ $execution.id }}",
+            "workflowName": "={{ $workflow.name }}",
+            "errorMessage": "={{ $json.error }}",
+            "nodeName": "={{ $prevNode.name ? $prevNode.name : '' }}",
+            "status": "Failed"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "runId",
+              "displayName": "runId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "jobsAdded",
+              "displayName": "jobsAdded",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": true
+            },
+            {
+              "id": "workflowName",
+              "displayName": "workflowName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "nodeName",
+              "displayName": "nodeName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "errorMessage",
+              "displayName": "errorMessage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3888,
+        368
+      ],
+      "id": "ee910e4c-3d0c-4d03-9de2-150e157f6866",
+      "name": "Call 'Sub-Workflow-Logging'3",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "94a71d90-f4fa-4ccf-9bec-4e00017dae47",
+              "name": "sheetLog",
+              "value": "YOUR_SPREADSHEET_URI",
+              "type": "string"
+            },
+            {
+              "id": "2201476b-04c0-4542-9710-5b44f39f2746",
+              "name": "sheetJob",
+              "value": "YOUR_SPREADSHEET_URI",
+              "type": "string"
+            },
+            {
+              "id": "b4f990ee-ba61-4320-a055-1bcab391bb1e",
+              "name": "sheetProfile",
+              "value": "YOUR_SPREADSHEET_URI",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        304
+      ],
+      "id": "19458c95-8eb0-47f0-a1d9-f491eed6ce80",
+      "name": "Edit Fields4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Call 'Sub-Workflow-Logging'",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'Sub-Workflow-Logging'3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call Sub-workflow-OpenAI-Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Sub-workflow-OpenAI-Error": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Call 'Sub-Workflow-Logging'2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'Sub-Workflow-Logging'2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Sub-Workflow-Logging'": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Call 'Sub-Workflow-Logging'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Sub-Workflow-Logging'1": {
+      "main": [
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "7W3YLTE8TjEl9yQY",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "e438c08e-d9fe-42d9-ae63-7d5f13c4dbd6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8a2bdabd4c2b5f0c12a09e1bbc310f66f93b76bddeb8c818b99fcb3a1b6ba4cf"
+  },
+  "nodeGroups": [],
+  "id": "7AyiR0Q2TjrziRiX",
+  "tags": []
+}
