@@ -46,7 +46,10 @@
       "name": "If1"
     },
     {
-      "parameters": {},
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
@@ -57,30 +60,6 @@
       "name": "Wait",
       "webhookId": "036ab0e4-1efa-45c4-9ce5-49ea2f624b29",
       "executeOnce": true
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "bfb2d7c2-dad4-46b1-9be2-ca037a337cf9",
-              "name": "retryCount",
-              "value": "={{ $json.retryCount + 1}}",
-              "type": "number"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1296,
-        288
-      ],
-      "id": "a9a42264-c424-4f44-96ad-0324a51aedf4",
-      "name": "Edit Fields"
     },
     {
       "parameters": {
@@ -204,6 +183,46 @@
       "id": "32e34bad-999c-4cb4-9299-3e99607102bf",
       "name": "Execute Workflow",
       "executeOnce": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bfb2d7c2-dad4-46b1-9be2-ca037a337cf9",
+              "name": "retryCount",
+              "value": "={{ $json.retryCount + 1}}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1296,
+        288
+      ],
+      "id": "a9a42264-c424-4f44-96ad-0324a51aedf4",
+      "name": "Set retryCount"
+    },
+    {
+      "parameters": {
+        "content": "If the OpenAI API fails:\n* Retry automatically for 429 (Rate Limit) errors.\n* For all other errors, call the logging sub-workflow, record the error, and stop the workflow.",
+        "height": 208,
+        "width": 480,
+        "color": "#42729E"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        960,
+        160
+      ],
+      "typeVersion": 1,
+      "id": "a7583912-de67-4d7c-8a93-1c54462ff020",
+      "name": "Sticky Note2"
     }
   ],
   "pinData": {},
@@ -212,7 +231,7 @@
       "main": [
         [
           {
-            "node": "Edit Fields",
+            "node": "Set retryCount",
             "type": "main",
             "index": 0
           }
@@ -220,17 +239,6 @@
         [
           {
             "node": "Execute Workflow",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit Fields": {
-      "main": [
-        [
-          {
-            "node": "Wait",
             "type": "main",
             "index": 0
           }
@@ -258,6 +266,17 @@
           }
         ]
       ]
+    },
+    "Set retryCount": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -266,7 +285,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "3e03c082-c097-4f02-83bc-0a23a29acea1",
+  "versionId": "0ede70fc-fc9c-4093-a67c-cf7855a26f55",
   "meta": {
     "instanceId": "8a2bdabd4c2b5f0c12a09e1bbc310f66f93b76bddeb8c818b99fcb3a1b6ba4cf"
   },

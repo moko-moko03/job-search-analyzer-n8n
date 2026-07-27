@@ -11,7 +11,7 @@ This repository contains four n8n workflows in the [workflows/](workflows/) fold
 | `Job search & analyze.json` | The main workflow. It searches for jobs, uses OpenAI to score how well each job matches your profile, and saves the results to a spreadsheet. |
 | `Sub-Workflow-Logging.json` | A shared sub-workflow that writes run logs to a spreadsheet. It's called by the other three workflows. |
 | `Sub-workflow-OpenAI-Error.json` | A sub-workflow that retries OpenAI calls on failure and logs errors. |
-| `Error logging.json` | Runs automatically whenever another workflow fails, and forwards the error details to `Sub-Workflow-Logging`. |
+| `Error logging.json` | Runs automatically whenever main workflow fails, and forwards the error details to `Sub-Workflow-Logging`. When triggered manually (e.g., using `Execute workflow`), Error Logging is not called even if the workflow fails. Once published with an automated trigger (e.g., `Schedule`), Error Logging will be triggered upon failure. |
 
 ## Data source
 
@@ -35,18 +35,18 @@ Job listings are fetched from the [Himalayas Remote Jobs API](https://himalayas.
 
 ### 2. Set your spreadsheet URLs
 
-These workflows use three of your own Google Sheets: one for job data, one for logs, and one for your profile. Enter their URLs into the "Edit Fields" node at the very start of each workflow:
+These workflows use three of your own Google Sheets: one for job data, one for logs, and one for your profile. Enter their URLs into the "Set sheet link" node at the very start of main workflow and Sub-workflow-Logging:
 
 > **Tip:** Ready-to-use Google Sheets templates are available in the [spreadsheet/](spreadsheet/) folder — download and copy them into your own Google Drive if you'd rather not build the sheets from scratch. Do not rename any of the columns in these templates, since the workflows reference them by name and will stop working correctly if the column names are changed.
 
-1. Open **`Job search & analyze`** and double-click the **`Edit Fields4`** node — the node directly connected to the trigger (`When clicking 'Execute workflow'`). It has three fields:
+1. Open **`Job search & analyze`** and double-click the **`Set sheet link`** node — the node directly connected to the trigger (`When clicking 'Execute workflow'`). It has three fields:
    - `sheetLog` — URL of your log spreadsheet
    - `sheetJob` — URL of your job-data spreadsheet
    - `sheetProfile` — URL of your profile spreadsheet
    
    Replace the placeholder value (`YOUR_SPREADSHEET_URI`) in each field with the URL of your own spreadsheet. They can be three separate spreadsheets, or three tabs in one spreadsheet — either works, as long as each URL points to the right one.
-2. Open **`Sub-Workflow-Logging`** and double-click the **`Edit Fields`** node right after its trigger (`When Executed by Another Workflow`). It has one field:
-   - `sheetLog` — set this to the **same URL** you used for the log spreadsheet in step 1, so both workflows write to the same place.
+2. Open **`Sub-Workflow-Logging`** and double-click the **`Set sheetLog`** node right after its trigger (`When Executed by Another Workflow`). It has one field:
+   - `sheetLog` — set this to the **same URL** you used for the log spreadsheet in step 1.
 
 > **Note:** Every node reads from the first tab of each spreadsheet (`gid=0`, usually named `Sheet1`). If you're creating new spreadsheets, it helps to add a header row on that first tab in advance:
 >
