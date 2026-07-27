@@ -33,7 +33,7 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "position": [
         272,
-        352
+        448
       ]
     },
     {
@@ -64,323 +64,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        896,
-        352
+        944,
+        448
       ],
       "id": "82ac87b4-1fc6-4ebe-8c20-df2a5e49ced7",
       "name": "If"
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Edit Fields').item.json.sheetLog }}",
-          "mode": "url"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Sheet1",
-          "cachedResultUrl": "YOUR_SPREADSHEET_URI"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "Run ID",
-              "lookupValue": "={{ $json.runId }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        688,
-        352
-      ],
-      "id": "5956d890-284d-42f8-8c43-6efd06a64968",
-      "name": "Get row(s) in sheet",
-      "alwaysOutputData": true,
-      "executeOnce": false,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YmtwqdRi7R5Nf4U3",
-          "name": "Google Sheets account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Edit Fields').item.json.sheetLog }}",
-          "mode": "url"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Sheet1",
-          "cachedResultUrl": "YOUR_SPREADSHEET_URI"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "Run ID": "={{ $node[\"When Executed by Another Workflow\"].json[\"runId\"] }}",
-            "Start": "={{ $now.setZone('America/Toronto').toFormat('yyyy-MM-dd HH:mm') }}",
-            "Status": "={{ $node[\"When Executed by Another Workflow\"].json[\"status\"] ? $node[\"When Executed by Another Workflow\"].json[\"status\"] : 'Running' }}",
-            "End": "={{ $now.setZone('America/Toronto').toFormat('yyyy-MM-dd HH:mm') }}",
-            "Jobs Added": "={{ $node[\"When Executed by Another Workflow\"].json[\"jobsAdded\"] }}",
-            "Workflow Name": "={{ $node[\"When Executed by Another Workflow\"].json[\"workflowName\"] }}",
-            "Node Name": "={{ $node[\"When Executed by Another Workflow\"].json[\"nodeName\"] }}",
-            "Error Message": "={{ $node[\"When Executed by Another Workflow\"].json[\"errorMessage\"] }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "Run ID",
-              "displayName": "Run ID",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Start",
-              "displayName": "Start",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "End",
-              "displayName": "End",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Jobs Added",
-              "displayName": "Jobs Added",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Workflow Name",
-              "displayName": "Workflow Name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Node Name",
-              "displayName": "Node Name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Error Message",
-              "displayName": "Error Message",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1360,
-        352
-      ],
-      "id": "b077c0d0-7e0c-4ae7-ad79-80a7d0736714",
-      "name": "Append row in sheet",
-      "executeOnce": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YmtwqdRi7R5Nf4U3",
-          "name": "Google Sheets account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Edit Fields').item.json.sheetLog }}",
-          "mode": "url"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Sheet1",
-          "cachedResultUrl": "YOUR_SPREADSHEET_URI"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "Run ID": "={{ $node[\"When Executed by Another Workflow\"].json[\"runId\"] }}",
-            "Status": "Completed",
-            "End": "={{ $now.setZone('America/Toronto').toFormat('yyyy-MM-dd HH:mm') }}",
-            "Jobs Added": "={{ $node[\"When Executed by Another Workflow\"].json[\"jobsAdded\"] }}"
-          },
-          "matchingColumns": [
-            "Run ID"
-          ],
-          "schema": [
-            {
-              "id": "Run ID",
-              "displayName": "Run ID",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Start",
-              "displayName": "Start",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "End",
-              "displayName": "End",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Jobs Added",
-              "displayName": "Jobs Added",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Workflow Name",
-              "displayName": "Workflow Name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "Node Name",
-              "displayName": "Node Name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "Error Message",
-              "displayName": "Error Message",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "row_number",
-              "displayName": "row_number",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "readOnly": true,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1376,
-        528
-      ],
-      "id": "cda502e8-96e3-4c40-a48e-9dde3141c51b",
-      "name": "Update row in sheet",
-      "executeOnce": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YmtwqdRi7R5Nf4U3",
-          "name": "Google Sheets account"
-        }
-      }
     },
     {
       "parameters": {
@@ -410,18 +98,42 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1088,
-        480
+        1168,
+        544
       ],
       "id": "9f25a469-33f5-46e7-bc3a-5e6ff30813d5",
       "name": "If1"
     },
     {
       "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "42f21441-f7aa-402f-aee2-c9f00e1c9b2e",
+              "name": "sheetLog",
+              "value": "YOUR_SPREADSHEET_URI",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        448
+      ],
+      "id": "307c5bbb-4956-488d-a72e-05f777206462",
+      "name": "Set sheetLog"
+    },
+    {
+      "parameters": {
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "={{ $('Edit Fields').item.json.sheetLog }}",
+          "value": "={{ $('Set sheetLog').item.json.sheetLog }}",
           "mode": "url"
         },
         "sheetName": {
@@ -546,10 +258,10 @@
       "typeVersion": 4.7,
       "position": [
         1392,
-        752
+        640
       ],
       "id": "f92fab80-9795-4caf-9fae-40202105b5ba",
-      "name": "Update row in sheet1",
+      "name": "Record error message",
       "executeOnce": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -560,27 +272,347 @@
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set sheetLog').item.json.sheetLog }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "YOUR_SPREADSHEET_URI"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Run ID": "={{ $node[\"When Executed by Another Workflow\"].json[\"runId\"] }}",
+            "Status": "Completed",
+            "End": "={{ $now.setZone('America/Toronto').toFormat('yyyy-MM-dd HH:mm') }}",
+            "Jobs Added": "={{ $node[\"When Executed by Another Workflow\"].json[\"jobsAdded\"] }}"
+          },
+          "matchingColumns": [
+            "Run ID"
+          ],
+          "schema": [
             {
-              "id": "42f21441-f7aa-402f-aee2-c9f00e1c9b2e",
-              "name": "sheetLog",
-              "value": "YOUR_SPREADSHEET_URI",
-              "type": "string"
+              "id": "Run ID",
+              "displayName": "Run ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Start",
+              "displayName": "Start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "End",
+              "displayName": "End",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Jobs Added",
+              "displayName": "Jobs Added",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Workflow Name",
+              "displayName": "Workflow Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Node Name",
+              "displayName": "Node Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Error Message",
+              "displayName": "Error Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1392,
+        448
+      ],
+      "id": "cda502e8-96e3-4c40-a48e-9dde3141c51b",
+      "name": "Record completion",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YmtwqdRi7R5Nf4U3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set sheetLog').item.json.sheetLog }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "YOUR_SPREADSHEET_URI"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Run ID": "={{ $node[\"When Executed by Another Workflow\"].json[\"runId\"] }}",
+            "Start": "={{ $now.setZone('America/Toronto').toFormat('yyyy-MM-dd HH:mm') }}",
+            "Status": "={{ $node[\"When Executed by Another Workflow\"].json[\"status\"] ? $node[\"When Executed by Another Workflow\"].json[\"status\"] : 'Running' }}",
+            "End": "={{ $now.setZone('America/Toronto').toFormat('yyyy-MM-dd HH:mm') }}",
+            "Jobs Added": "={{ $node[\"When Executed by Another Workflow\"].json[\"jobsAdded\"] }}",
+            "Workflow Name": "={{ $node[\"When Executed by Another Workflow\"].json[\"workflowName\"] }}",
+            "Node Name": "={{ $node[\"When Executed by Another Workflow\"].json[\"nodeName\"] }}",
+            "Error Message": "={{ $node[\"When Executed by Another Workflow\"].json[\"errorMessage\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Run ID",
+              "displayName": "Run ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Start",
+              "displayName": "Start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "End",
+              "displayName": "End",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Jobs Added",
+              "displayName": "Jobs Added",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Workflow Name",
+              "displayName": "Workflow Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Node Name",
+              "displayName": "Node Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Error Message",
+              "displayName": "Error Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1168,
+        352
+      ],
+      "id": "b077c0d0-7e0c-4ae7-ad79-80a7d0736714",
+      "name": "Create new log entry",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YmtwqdRi7R5Nf4U3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "**This sub-workflow records logs in a Google Sheet.**\n\nFind the log entry that matches the current runId.\nIf no matching runId exists, create a new log entry.\nIf the status is complete, record the completion; otherwise, record the error message.",
+        "height": 208,
+        "width": 480,
+        "color": "#42729E"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        480,
+        640
+      ],
+      "typeVersion": 1,
+      "id": "b9d1a127-12a2-49f1-b0bf-12a7acedd30c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "# Set sheetLog\n\nConfigure the Google Sheets used by this workflow.\nIn Google Drive, open a spreadsheet and select **Share → Copy link**.\nPaste link into the corresponding field in **Set sheetLog**.\n\n**NOTE:**\nYou can also use a single spreadsheet with three separate sheets. In that case, update the sheet name in each Google Sheets node.",
+        "height": 336,
+        "width": 480,
+        "color": "#42729E"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        464,
+        144
+      ],
+      "typeVersion": 1,
+      "id": "ca9e6058-add3-4b4c-b24b-f89d8a52f388",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set sheetLog').item.json.sheetLog }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "YOUR_SPREADSHEET_URI"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Run ID",
+              "lookupValue": "={{ $json.runId }}"
             }
           ]
         },
-        "includeOtherFields": true,
         "options": {}
       },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
-        480,
-        352
+        720,
+        448
       ],
-      "id": "307c5bbb-4956-488d-a72e-05f777206462",
-      "name": "Edit Fields"
+      "id": "5956d890-284d-42f8-8c43-6efd06a64968",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YmtwqdRi7R5Nf4U3",
+          "name": "Google Sheets account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -589,18 +621,7 @@
       "main": [
         [
           {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get row(s) in sheet": {
-      "main": [
-        [
-          {
-            "node": "If",
+            "node": "Set sheetLog",
             "type": "main",
             "index": 0
           }
@@ -611,7 +632,7 @@
       "main": [
         [
           {
-            "node": "Append row in sheet",
+            "node": "Create new log entry",
             "type": "main",
             "index": 0
           }
@@ -629,25 +650,36 @@
       "main": [
         [
           {
-            "node": "Update row in sheet",
+            "node": "Record completion",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Update row in sheet1",
+            "node": "Record error message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Edit Fields": {
+    "Set sheetLog": {
       "main": [
         [
           {
             "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -661,7 +693,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "112cf10b-8d7b-4aa2-939e-be3ffa2f83ac",
+  "versionId": "17c9a3d7-d5c4-4caf-be58-773b501fd74f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "8a2bdabd4c2b5f0c12a09e1bbc310f66f93b76bddeb8c818b99fcb3a1b6ba4cf"

@@ -26,10 +26,11 @@
           "mappingMode": "defineBelow",
           "value": {
             "jobsAdded": 0,
-            "runId": "={{ $json.runId ? $json.runId : '' }}",
-            "workflowName": "={{ $json.workflowName ? $json.workflowName : '' }}",
-            "nodeName": "={{ $json.nodeName ? $json.nodeName : '' }}",
-            "errorMessage": "={{ $json.execution.error ? $json.execution.error : '' }}"
+            "runId": "={{ $json.execution.id ? $json.execution.id : '' }}",
+            "workflowName": "={{ $json.workflow.name ? $json.workflow.name : '' }}",
+            "nodeName": "={{ $json.execution.lastNodeExecuted ? $json.execution.lastNodeExecuted : '' }}",
+            "errorMessage": "={{ $json.execution.error.message ? $json.execution.error.message : '' }}",
+            "status": "Failed"
           },
           "matchingColumns": [],
           "schema": [
@@ -132,7 +133,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "3723d3cd-cbdb-4a7f-b37f-b402c94504a7",
+  "versionId": "80790e93-ca0e-44a9-89aa-b97737109ab6",
   "meta": {
     "instanceId": "8a2bdabd4c2b5f0c12a09e1bbc310f66f93b76bddeb8c818b99fcb3a1b6ba4cf"
   },
